@@ -6,5 +6,10 @@ RUN apk add --update \
     samba-server \
     && rm -rf /var/cache/apk/*
 
+ENV user=neytor \
+    password=neytor \
+    mygroup=sambita \
+    dir=/download
+
 COPY run.sh /opt/
-CMD sh /opt/run.sh
+ENTRYPOINT [ "sh", "/opt/run.sh" ] 

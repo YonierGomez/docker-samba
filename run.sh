@@ -1,27 +1,26 @@
 #!/bin/bash
 
-user=neytor
-password=neytor
-grupo=sambita
-dir=/opt/download
+user=$user
+password=$password
+mygroup=$mygroup
+dir=$dir
+
 #DEFINIR USUARIO
 echo ================================================
 echo Creando usuario $user y directorio
 echo ================================================
 adduser -D $user
 passwd -d $password
-addgroup -g 8888 $grupo
-# usermod -G $grupo $user
-addgroup -S neytor sambita
+addgroup -g 8888 $mygroup
+addgroup -S $user $mygroup
 mkdir $dir
-chgrp $grupo $dir
+chgrp $mygroup $dir
 chmod 770 $dir
 
 echo ================================================
 echo Configurando archivo samba
 echo ================================================
 
-echo "Hola $(hostname -f file example)" > $dir/file.txt
 mv /etc/samba/smb.conf /etc/samba/smb.backup
 cat << EOF > /etc/samba/smb.conf
 [global]
@@ -35,25 +34,9 @@ max log size = 1000
 protocol = SMB3
 panic action = /usr/share/samba/panic-action %d
 idmap config * : backend = tdb
-map to guest = bad user
-dns proxy = no
-ntlm auth = true
-server multi channel support = yes
-bind interfaces only = yes
 hosts allow = 192., 127., ::1, 172.
 hosts deny = 0.0.0.0/0
-guest account = nobody
-pam password change = yes
-map to guest = bad user
-usershare allow guests = yes
-create mask = 0664
-force create mode = 0664
-directory mask = 0775
-force directory mode = 0775
-socket options = TCP_NODELAY
-strict locking = no
-local master = no
-winbind scan trusted domains = yes
+#APPLE
 vfs objects = fruit streams_xattr
 fruit:metadata = stream
 fruit:model = MacSamba
@@ -63,14 +46,14 @@ fruit:wipe_intentionally_left_blank_rfork = yes
 fruit:delete_empty_adfiles = yes
 fruit:time machine = yes
 
-[download]
-comment = Descargas
+[$dir]
+comment = $dir
 path = $dir
 browsable = yes
 writable = yes
-valid users = @$grupo
-write list = @$grupo
-force group = +$grupo
+valid users = @$mygroup
+write list = @$mygroup
+force group = +$mygroup
 create mask = 0770
 guest ok = no
 EOF
@@ -97,7 +80,7 @@ echo "Usuario: $user"
 echo "Contraseña: $password"
 
 echo ================================================
-echo Ingresa via smb://localhost$dir
+echo Ingresa via smb://myIp
 echo ================================================
 
 echo ================================================
