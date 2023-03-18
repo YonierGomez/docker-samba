@@ -1,5 +1,7 @@
 FROM alpine
 
+LABEL maintainer <Yonier Gómez>
+
 RUN apk add --update \
     samba-common-tools \
     samba-client \
