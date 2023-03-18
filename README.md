@@ -26,13 +26,13 @@ Comparte archivos entre Windows, Linux, Mac, todo con Samba
 
 ## ¿Cuál es nuestro uso?
 
-Nuestro servidor samba nos permitirá compartir directorio entre sitemas tales como WIndows, Linux, MacOS.
+Nuestro servidor samba nos permitirá compartir directorio entre sistemas tales como WIndows, Linux, MacOS.
 
 ![Polymart Downloads](https://img.shields.io/polymart/downloads/323)
 
 ## ¿Cómo usar esta imagen?
 
-Puede hacer uso de docker cli o docker compost
+Puede hacer uso de docker cli o docker compose
 
 ### Login por defecto
 
@@ -75,7 +75,7 @@ services:
 
 ```bash
 $ docker container run \
-    --name sambita -v samba:/download \
+    --name samba_server -v samba:/download \
     -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
     -d neytor/samba
 ```
@@ -95,16 +95,16 @@ Puedes pasar las siguientes variables al crear el contenedor
 
 | Variable      | Función                                                      |
 | ------------- | ------------------------------------------------------------ |
-| `-e user`     | Define el usuario para login - por defecto es neutro         |
-| `-e password` | Define la contraseña para el usuario - por defecto es neutro |
-| `-e mygroup`  | Define el nombre del grupo - por defecto un PGID de 8888 y grupo Zambia |
+| `-e user`     | Define el usuario para login - por defecto es neytor         |
+| `-e password` | Define la contraseña para el usuario - por defecto es neytor |
+| `-e mygroup`  | Define el nombre del grupo - por defecto un PGID de 8888 y grupo sambita |
 | `-e dir`      | Define el directorio que desea compartir - por defecto es /download |
 
 #### Ejemplo completo
 
 ```bash
 $ docker container run \
-    --name sambita -v samba:/download \
+    --name samba_server -v samba:/download \
     -e user=neytor \
     -e dir=/download \
     -e mygroup=sambita \
@@ -124,4 +124,4 @@ Si desea una mejor velocidad se recomienda utilizar la red `host`
 
 ## Te invito a visitar mi web
 
-Puedes ver nuevos eventos en [https://www.yonier.com/](https://www.yonier.com).
+Puedes ver nuevos eventos en [https://www.yonier.com/](https://www.yonier.com)
