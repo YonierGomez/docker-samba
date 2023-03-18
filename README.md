@@ -10,6 +10,7 @@ Comparte archivos entre Windows, Linux, Mac, todo con Samba
 -	Arquitectura soportada
 -	Variables
 -	Rendimiento optimizado
+-	Uso en raspberry
 -	Te invito a visitar mi web
 
 ## ¿Qué es  samba?
@@ -74,10 +75,10 @@ services:
 ### docker cli
 
 ```bash
-$ docker container run \
-    --name samba_server -v samba:/download \
-    -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
-    -d neytor/samba
+docker container run \
+   --name samba_server -v samba:/download \
+   -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
+   -d neytor/samba
 ```
 
 ## Arquitectura soportada
@@ -103,13 +104,13 @@ Puedes pasar las siguientes variables al crear el contenedor
 #### Ejemplo completo
 
 ```bash
-$ docker container run \
-    --name samba_server -v samba:/download \
-    -e user=neytor \
-    -e dir=/download \
-    -e mygroup=sambita \
-    -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
-    -d neytor/samba
+docker container run \
+  --name samba_server -v samba:/download \
+  -e user=neytor \
+  -e dir=/download \
+  -e mygroup=sambita \
+  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
+  -d neytor/samba
 ```
 
 ## Environment variables desde archivo (Docker secrets)
@@ -119,6 +120,20 @@ Se recomienda pasar la variable `password`a través de un archivo.
 ## Rendimiento optimizado
 
 Si desea una mejor velocidad se recomienda utilizar la red `host`
+
+## Uso en Raspberry
+
+Puedes utilizarla para cualquier raspberry pi
+
+```bash
+docker container run \
+  --name samba_server -v samba:/download \
+  -e user=neytor \
+  -e dir=/download \
+  -e mygroup=sambita \
+  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
+  -d neytor/samba:arm
+```
 
 [![Try in PWD](https://github.com/play-with-docker/stacks/raw/cff22438cb4195ace27f9b15784bbb497047afa7/assets/images/button.png)](http://play-with-docker.com?stack=https://raw.githubusercontent.com/docker-library/docs/db214ae34137ab29c7574f5fbe01bc4eaea6da7e/wordpress/stack.yml)
 
