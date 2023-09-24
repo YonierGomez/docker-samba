@@ -103,7 +103,7 @@ Puedes pasar las siguientes variables al crear el contenedor
 | `-e mydir`      | Define el directorio que desea compartir - por defecto es /download |
 | `-e mydirdos`      | Opcional: Define un segundo directorio que desea compartir |
 
-> **IMPORTANTE:** Puede crear mas carpetas compartidas únicamente debe respetar el nombre 'mydir' luego cualquier cosa, por ejemlo; Pasando la opción -e 'mydiruno', 'mydirdos', todos los que necesites, 
+> **IMPORTANTE:** Puede crear mas carpetas compartidas únicamente debe respetar el nombre 'mydir' luego cualquier cosa, por ejemlo; Pasando la opción '-e mydiruno', '-e mydirdos', todos los que necesites, 
 
 #### Ejemplo completo
 
