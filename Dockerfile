@@ -11,7 +11,8 @@ RUN apk add --update \
 ENV user=neytor \
     password=neytor \
     mygroup=sambita \
-    dir=/download
+    mydir=/download \
+    mydirdos=/work
 
 COPY run.sh /opt/
 ENTRYPOINT [ "sh", "/opt/run.sh" ] 

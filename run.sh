@@ -1,27 +1,11 @@
 #!/bin/bash
 
-user=$user
-password=$password
 mygroup=$mygroup
-dir=$dir
 
-#DEFINIR USUARIO
-echo ================================================
-echo Creando usuario $user y directorio
-echo ================================================
-adduser -D $user
-passwd -d $password
-addgroup -g 8888 $mygroup
-addgroup -S $user $mygroup
-mkdir $dir
-chgrp $mygroup $dir
-chmod 770 $dir
-
-echo ================================================
-echo Configurando archivo samba
-echo ================================================
-
+# Move the original smb.conf to smb.backup
 mv /etc/samba/smb.conf /etc/samba/smb.backup
+
+# Create a new smb.conf with the global configuration
 cat << EOF > /etc/samba/smb.conf
 [global]
 workgroup = WORKGROUP
@@ -45,10 +29,38 @@ fruit:veto_appledouble = no
 fruit:wipe_intentionally_left_blank_rfork = yes
 fruit:delete_empty_adfiles = yes
 fruit:time machine = yes
+EOF
 
-[$dir]
-comment = $dir
-path = $dir
+# Create the user if it doesn't exist
+if ! id -u $user &>/dev/null; then
+    echo ================================================
+    echo Creating user $user
+    echo ================================================
+    adduser -D $user
+    echo -e "$password\n$password" | smbpasswd -a -s $user
+fi
+
+# Find environment variables starting with "mydir" and create directories
+for var in $(env | grep '^mydir'); do
+    dir_path="${var#*=}"
+    dir_name=$(basename "$dir_path")
+
+    # Create the directory
+    echo ================================================
+    echo Creating directory $dir_path
+    echo ================================================
+    mkdir -p "$dir_path"
+    chgrp $mygroup "$dir_path"
+    chmod 770 "$dir_path"
+
+    # Add a Samba share configuration
+    echo ================================================
+    echo Adding Samba share for $dir_name
+    echo ================================================
+    cat << EOF >> /etc/samba/smb.conf
+[$dir_name]
+comment = $dir_name
+path = $dir_path
 browsable = yes
 writable = yes
 valid users = @$mygroup
@@ -57,33 +69,24 @@ force group = +$mygroup
 create mask = 0770
 guest ok = no
 EOF
+done
 
+# Validate Samba configuration
 echo ================================================
-echo Validando configuracion de samba
+echo Validating Samba configuration
 echo ================================================
-
 testparm -s
 
+# Display user credentials
 echo ================================================
-echo Configurando credenciales samba
+echo These are your credentials
 echo ================================================
+echo "User: $user"
+echo "Password: $password"
 
-smbpasswd -a $user<<EOF
-$password
-$password
-EOF
-
+# Start the Samba server
 echo ================================================
-echo Estas son tus credenciales
+echo Access via smb://myIp
 echo ================================================
-echo "Usuario: $user"
-echo "Contraseña: $password"
-
-echo ================================================
-echo Ingresa via smb://myIp
-echo ================================================
-
-echo ================================================
-echo Subiendo el server samba
-echo ================================================
+echo Starting the Samba server
 smbd --foreground --debug-stdout --no-process-group
