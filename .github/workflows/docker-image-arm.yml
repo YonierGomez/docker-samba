@@ -1,10 +1,6 @@
-name: Docker Image CI for Samba
+name: Docker Image CI for Samba arm
 
 on:
-  push:
-    branches: [ "master", "main" ]
-  pull_request:
-    branches: [ "master", "main" ]
   workflow_dispatch: # Agrega esta entrada para habilitar la ejecución manual
     branches: [ "master", "main" ] # Opcional: restringe las ramas donde se puede ejecutar
 
@@ -24,17 +20,20 @@ jobs:
         registry: docker.io
         username: ${{ secrets.USER_HUB }}
         password: ${{ secrets.PASS_HUB }}
-        
-    
+
+
     - name: Build and push the Docker image latest
       run: |
-        docker build . --file Dockerfile --tag neytor/samba-arm && 
-        docker image ls && docker push neytor/samba-arm
-
+        docker build . --file Dockerfile --tag neytor/samba-arm &&
+        docker image ls &&
+        docker push neytor/samba-arm
+    
     - name: Build and push the Docker image with tag
       run: |
-        docker build . --file Dockerfile --tag neytor/samba-arm:v1 && \
-        docker image ls && docker push neytor/samba-arm:v1
+        docker build . --file Dockerfile --tag neytor/samba-arm:v1 &&
+        docker image ls &&
+        docker push neytor/samba-arm:v1
+      
       
     
 
