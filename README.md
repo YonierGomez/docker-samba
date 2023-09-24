@@ -57,7 +57,8 @@ services:
     	- user=neytor #OPCIONAL
     	- password=neytor #OPCIONAL
     	- mygroup=sambita #OPCIONAL
-    	- dir=/download #OPCIONAL
+    	- mydir=/download #OPCIONAL DIRECTORIO COMPARTIDO
+    	- mydirdos=/work #OPCIONAL DIRECTORIO COMPARTIDO
     ports:
       - 445:445
       - 137:137/udp
@@ -99,7 +100,10 @@ Puedes pasar las siguientes variables al crear el contenedor
 | `-e user`     | Define el usuario para login - por defecto es neytor         |
 | `-e password` | Define la contraseña para el usuario - por defecto es neytor |
 | `-e mygroup`  | Define el nombre del grupo - por defecto un PGID de 8888 y grupo sambita |
-| `-e dir`      | Define el directorio que desea compartir - por defecto es /download |
+| `-e mydir`      | Define el directorio que desea compartir - por defecto es /download |
+| `-e mydirdos`      | Opcional: Define un segundo directorio que desea compartir |
+
+> **IMPORTANTE:** Puede crear mas carpetas compartidas únicamente debe respetar el nombre 'mydir' luego cualquier cosa, por ejemlo; Pasando la opción -e 'mydiruno', 'mydirdos', todos los que necesites, 
 
 #### Ejemplo completo
 
@@ -107,7 +111,8 @@ Puedes pasar las siguientes variables al crear el contenedor
 docker container run \
   --name samba_server -v samba:/download \
   -e user=neytor \
-  -e dir=/download \
+  -e mydir=/download \
+  -e mydirdos=/work \ #RECUERDA OPCIONAL DIRECTORIO COMPARTIDO
   -e mygroup=sambita \
   -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
   -d neytor/samba
@@ -129,7 +134,8 @@ Puedes utilizarla para cualquier raspberry pi
 docker container run \
   --name samba_server -v samba:/download \
   -e user=neytor \
-  -e dir=/download \
+  -e mydir=/download \
+  -e mydirdos=/work \ #RECUERDA OPCIONAL DIRECTORIO COMPARTIDO
   -e mygroup=sambita \
   -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
   -d neytor/samba:arm
