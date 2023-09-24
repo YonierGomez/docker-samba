@@ -3,15 +3,15 @@ Comparte archivos entre Windows, Linux, Mac, todo con Samba
 
 ## Referencia rápida
 
--	¿Qué es  samba?
--	¿Cuál es nuestro uso?
--	¿Cómo usar esta imagen?
--	Login por defecto
--	Arquitectura soportada
--	Variables
--	Rendimiento optimizado
--	Uso en raspberry
--	Te invito a visitar mi web
+-	**¿Qué es  samba?**
+-	**¿Cuál es nuestro uso?**
+-	**¿Cómo usar esta imagen?**
+-	**Login por defecto**
+-	**Arquitectura soportada**
+-	**Variables**
+-	**Rendimiento optimizado**
+-	**Uso en raspberry**
+-	**Te invito a visitar mi web**
 
 ## ¿Qué es  samba?
 
