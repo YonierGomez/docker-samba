@@ -18,7 +18,7 @@ max log size = 1000
 protocol = SMB3
 panic action = /usr/share/samba/panic-action %d
 idmap config * : backend = tdb
-hosts allow = 192., 127., ::1, 172.
+hosts allow = 192., 127., ::1, 172., 192.168.1.
 hosts deny = 0.0.0.0/0
 #APPLE
 vfs objects = fruit streams_xattr
