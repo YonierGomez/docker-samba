@@ -36,10 +36,9 @@ if ! id -u $user &>/dev/null; then
     echo ================================================
     echo Creating user $user
     echo ================================================
-    adduser -D $user
+    adduser -D -g $mygroup $user
     echo -e "$password\n$password" | smbpasswd -a -s $user
     addgroup -g 8888 $mygroup
-    addgroup -S $user $mygroup
 fi
 
 # Find environment variables starting with "mydir" and create directories
