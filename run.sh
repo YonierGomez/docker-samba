@@ -18,8 +18,8 @@ max log size = 1000
 protocol = SMB3
 panic action = /usr/share/samba/panic-action %d
 idmap config * : backend = tdb
-hosts allow = 0.0.0.0/0
-hosts deny = 
+hosts allow = 192., 127., ::1, 172.
+hosts deny = 0.0.0.0/0
 #APPLE
 vfs objects = fruit streams_xattr
 fruit:metadata = stream
@@ -36,9 +36,10 @@ if ! id -u $user &>/dev/null; then
     echo ================================================
     echo Creating user $user
     echo ================================================
-    adduser -D -g $mygroup $user
+    adduser -D $user
     echo -e "$password\n$password" | smbpasswd -a -s $user
     addgroup -g 8888 $mygroup
+    addgroup -S $user $mygroup
 fi
 
 # Find environment variables starting with "mydir" and create directories
@@ -51,7 +52,7 @@ for var in $(env | grep '^mydir'); do
     echo Creating directory $dir_path
     echo ================================================
     mkdir -p "$dir_path"
-    chgrp $mygroup "$dir_path"
+    chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
     chmod 770 "$dir_path"
 
     # Add a Samba share configuration
