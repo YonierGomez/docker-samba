@@ -30,9 +30,9 @@ jobs:
     
     - name: Build and push the Docker image with tag
       run: |
-        docker build . --file Dockerfile --tag neytor/samba:arm.v1 &&
+        docker build . --file Dockerfile --tag neytor/samba:arm-v4-19-6 &&
         docker image ls &&
-        docker push neytor/samba:arm.v1
+        docker push neytor/samba:arm-v4-19-6
       
       
     
