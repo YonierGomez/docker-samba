@@ -1,11 +1,9 @@
 #!/bin/bash
 
-mygroup=$mygroup
-
-# Move the original smb.conf to smb.backup
+# Mover el archivo smb.conf original a smb.backup
 mv /etc/samba/smb.conf /etc/samba/smb.backup
 
-# Create a new smb.conf with the global configuration
+# Crear un nuevo smb.conf con la configuración global
 cat << EOF > /etc/samba/smb.conf
 [global]
 workgroup = WORKGROUP
@@ -31,7 +29,7 @@ fruit:delete_empty_adfiles = yes
 fruit:time machine = yes
 EOF
 
-# Create the user if it doesn't exist
+# Crear el usuario si no existe
 if ! id -u $user &>/dev/null; then
     echo ================================================
     echo Creating user $user
@@ -42,7 +40,7 @@ if ! id -u $user &>/dev/null; then
     addgroup -S $user $mygroup
 fi
 
-# Function to create directory and add Samba share
+# Función para crear directorio y agregar recurso compartido de Samba
 create_samba_share() {
     local dir_path=$1
     if [ -z "$dir_path" ]; then
@@ -75,14 +73,14 @@ guest ok = no
 EOF
 }
 
-# Create the main directory and Samba share if mydir is not empty
+# Crear el directorio principal y recurso compartido si mydir no está vacío
 if [ -n "$mydir" ]; then
     create_samba_share "$mydir"
 else
     echo "mydir is empty, skipping..."
 fi
 
-# Process additional_dirs variable if not empty
+# Procesar additional_dirs si no está vacío
 if [ -n "$additional_dirs" ]; then
     IFS=',' read -ra ADDR <<< "$additional_dirs"
     for dir_path in "${ADDR[@]}"; do
@@ -92,20 +90,20 @@ else
     echo "additional_dirs is empty, skipping..."
 fi
 
-# Validate Samba configuration
+# Validar la configuración de Samba
 echo ================================================
 echo Validating Samba configuration
 echo ================================================
 testparm -s
 
-# Display user credentials
+# Mostrar credenciales de usuario
 echo ================================================
 echo These are your credentials
 echo ================================================
 echo "User: $user"
 echo "Password: $password"
 
-# Start the Samba server
+# Iniciar el servidor Samba
 echo ================================================
 echo Access via smb://myIp
 echo ================================================
