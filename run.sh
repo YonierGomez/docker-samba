@@ -31,9 +31,9 @@ EOF
 
 # Crear el usuario si no existe
 if ! id -u $user &>/dev/null; then
-    echo ================================================
-    echo Creating user $user
-    echo ================================================
+    echo "================================================"
+    echo "Creating user $user"
+    echo "================================================"
     adduser -D $user
     echo -e "$password\n$password" | smbpasswd -a -s $user
     addgroup -g 8888 $mygroup
@@ -49,17 +49,17 @@ create_samba_share() {
     fi
     local dir_name=$(basename "$dir_path")
 
-    echo ================================================
-    echo Creating directory $dir_path
-    echo ================================================
+    echo "================================================"
+    echo "Creating directory $dir_path"
+    echo "================================================"
     mkdir -p "$dir_path"
     chgrp -R $mygroup "$dir_path"
     chmod 770 "$dir_path"
 
-    echo ================================================
-    echo Adding Samba share for $dir_name
-    echo ================================================
-    cat <<- EOF >> /etc/samba/smb.conf
+    echo "================================================"
+    echo "Adding Samba share for $dir_name"
+    echo "================================================"
+    cat << EOF >> /etc/samba/smb.conf
 [$dir_name]
 comment = $dir_name
 path = $dir_path
@@ -91,21 +91,21 @@ else
 fi
 
 # Validar la configuración de Samba
-echo ================================================
-echo Validating Samba configuration
-echo ================================================
+echo "================================================"
+echo "Validating Samba configuration"
+echo "================================================"
 testparm -s
 
 # Mostrar credenciales de usuario
-echo ================================================
-echo These are your credentials
-echo ================================================
+echo "================================================"
+echo "These are your credentials"
+echo "================================================"
 echo "User: $user"
 echo "Password: $password"
 
 # Iniciar el servidor Samba
-echo ================================================
-echo Access via smb://myIp
-echo ================================================
-echo Starting the Samba server
+echo "================================================"
+echo "Access via smb://myIp"
+echo "================================================"
+echo "Starting the Samba server"
 smbd --foreground --debug-stdout --no-process-group

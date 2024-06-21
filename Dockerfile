@@ -15,4 +15,4 @@ ENV user=neytor \
     additional_dirs=/mydirdos,/books,/mydirtres
 
 COPY run.sh /opt/
-ENTRYPOINT [ "sh", "/opt/run.sh" ] 
+ENTRYPOINT [ "sh", "/opt/run.sh" ]
