@@ -1,7 +1,6 @@
 #!/bin/bash
 
 mygroup=$mygroup
-env
 
 # Move the original smb.conf to smb.backup
 mv /etc/samba/smb.conf /etc/samba/smb.backup
@@ -62,7 +61,7 @@ create_samba_share() {
     echo ================================================
     echo Adding Samba share for $dir_name
     echo ================================================
-    cat << EOF >> /etc/samba/smb.conf
+    cat <<- EOF >> /etc/samba/smb.conf
 [$dir_name]
 comment = $dir_name
 path = $dir_path
