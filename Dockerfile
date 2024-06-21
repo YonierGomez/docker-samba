@@ -1,29 +1,19 @@
 FROM alpine
 
-LABEL maintainer="Yonier Gómez"
+LABEL maintainer <Yonier Gómez>
 
-# Instalar Samba y limpiar la caché de apk
 RUN apk add --update \
     samba-common-tools \
     samba-client \
     samba-server \
     && rm -rf /var/cache/apk/*
 
-# Configurar variables de entorno predeterminadas
 ENV user=neytor \
     password=neytor \
     mygroup=sambita \
     mydir=/download \
-    mydirdos=/work
+    mydirdos=/work \
+    additional_dirs=""
 
-# Copiar el script de ejecución
-COPY run.sh /opt/run.sh
-
-# Dar permisos de ejecución al script
-RUN chmod +x /opt/run.sh
-
-# Exponer los puertos necesarios para Samba
-EXPOSE 139 445
-
-# Configurar el punto de entrada
-ENTRYPOINT ["/bin/sh", "/opt/run.sh"]
+COPY run.sh /opt/
+ENTRYPOINT [ "sh", "/opt/run.sh" ]
