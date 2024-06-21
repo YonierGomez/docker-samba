@@ -9,7 +9,14 @@ mygroup=$mygroup
 # Función para crear directorios basados en variables de entorno
 create_directory() {
     local var_prefix="$1"
-    local dir_path="${!var_prefix}"  # Acceder al valor de la variable usando ${!var}
+    local dir_path
+
+    case "$var_prefix" in
+        mydir) dir_path="$mydir" ;;
+        mydirdos) dir_path="$mydirdos" ;;
+        mydircuatro) dir_path="$mydircuatro" ;;
+        *) dir_path="" ;;
+    esac
 
     if [ -n "$dir_path" ]; then
         local dir_name=$(basename "$dir_path")
@@ -42,15 +49,9 @@ EOF
 }
 
 # Crear directorios para todas las variables de entorno que empiecen con "mydir"
-for var in $(env | grep '^mydir'); do
+for var in mydir mydirdos mydircuatro; do
     create_directory "$var"
 done
-
-# Crear directorios para mydirdos
-create_directory "mydirdos"
-
-# Crear directorios para mydircuatro (si se ha pasado como variable de entorno)
-create_directory "mydircuatro"
 
 # Validar configuración de Samba
 echo ================================================
