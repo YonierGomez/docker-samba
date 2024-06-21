@@ -88,10 +88,10 @@ def main():
         for dir_path in additional_dirs.split(','):
             create_dir_and_share(dir_path, mygroup)
 
-    print("===============================================")
-    print("Validating Samba configuration")
-    print("===============================================")
-    subprocess.run(['testparm', '-s'])
+    # print("===============================================")
+    # print("Validating Samba configuration")
+    # print("===============================================")
+    # subprocess.run(['testparm', '-s'])
 
     print("===============================================")
     print("These are your credentials")

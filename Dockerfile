@@ -14,7 +14,6 @@ ENV user=neytor \
     password=neytor \
     mygroup=sambita \
     mydir=/download \
-    mydirdos=/work \
     additional_dirs=""
 
 COPY run.py /opt/
