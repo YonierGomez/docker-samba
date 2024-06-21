@@ -12,7 +12,7 @@ ENV user=neytor \
     password=neytor \
     mygroup=sambita \
     mydir=/download \
-    additional_dirs=/mydirdos,/books,/mydirtres
+    mydirdos=/work
 
 COPY run.sh /opt/
-ENTRYPOINT [ "sh", "/opt/run.sh" ]
+ENTRYPOINT [ "sh", "/opt/run.sh" ] 
