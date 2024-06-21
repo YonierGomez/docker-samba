@@ -10,6 +10,6 @@ ENV user=neytor \
     mygroup=sambita \
     mydir=/download \
     mydirdos=/work
-COPY run.sh /opt/
-RUN chmod +x /opt/run.sh  # Asegurar que el script tiene permisos de ejecución
-ENTRYPOINT [ "sh", "-c", "/opt/run.sh" ]
+COPY run.sh /run.sh
+RUN chmod +x /run.sh  # Asegurar que el script tiene permisos de ejecución
+ENTRYPOINT [ "sh", "-c", "/run.sh" ]
