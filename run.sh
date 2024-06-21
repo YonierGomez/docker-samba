@@ -45,6 +45,10 @@ fi
 # Function to create directory and add Samba share
 create_samba_share() {
     local dir_path=$1
+    if [ -z "$dir_path" ]; then
+        echo "Directory path is empty, skipping..."
+        return
+    fi
     local dir_name=$(basename "$dir_path")
 
     echo ================================================
@@ -71,14 +75,22 @@ guest ok = no
 EOF
 }
 
-# Create the main directory and Samba share
-create_samba_share "$mydir"
+# Create the main directory and Samba share if mydir is not empty
+if [ -n "$mydir" ]; then
+    create_samba_share "$mydir"
+else
+    echo "mydir is empty, skipping..."
+fi
 
-# Process additional_dirs variable
-IFS=',' read -ra ADDR <<< "$additional_dirs"
-for dir_path in "${ADDR[@]}"; do
-    create_samba_share "$dir_path"
-done
+# Process additional_dirs variable if not empty
+if [ -n "$additional_dirs" ]; then
+    IFS=',' read -ra ADDR <<< "$additional_dirs"
+    for dir_path in "${ADDR[@]}"; do
+        create_samba_share "$dir_path"
+    done
+else
+    echo "additional_dirs is empty, skipping..."
+fi
 
 # Validate Samba configuration
 echo ================================================
