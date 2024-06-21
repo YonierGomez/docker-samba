@@ -1,74 +1,94 @@
-#!/bin/sh
-
-# Imprimir todas las variables de entorno para depuración
-echo "Environment variables:"
-env
+#!/bin/bash
 
 mygroup=$mygroup
 
-# Función para crear directorios basados en variables de entorno
-create_directory() {
-    local dir_path="$1"
-    local dir_name=$(basename "$dir_path")
+# Move the original smb.conf to smb.backup
+mv /etc/samba/smb.conf /etc/samba/smb.backup
 
-    if [ -n "$dir_path" ]; then
-        # Crear el directorio
-        echo ================================================
-        echo Creando directorio $dir_path
-        echo ================================================
-        mkdir -p "$dir_path"
-        chgrp -R $mygroup "$dir_path" || echo "Warning: Could not change group"
-        chmod 770 "$dir_path"
+# Create a new smb.conf with the global configuration
+cat << EOF > /etc/samba/smb.conf
+[global]
+workgroup = WORKGROUP
+server string = %h server (Samba, Ubuntu)
+security = user
+server role = standalone server
+passdb backend = smbpasswd
+log file = /var/log/samba/log.%m
+max log size = 1000
+protocol = SMB3
+panic action = /usr/share/samba/panic-action %d
+idmap config * : backend = tdb
+hosts allow = 192., 127., ::1, 172.
+hosts deny = 0.0.0.0/0
+#APPLE
+vfs objects = fruit streams_xattr
+fruit:metadata = stream
+fruit:model = MacSamba
+fruit:posix_rename = yes
+fruit:veto_appledouble = no
+fruit:wipe_intentionally_left_blank_rfork = yes
+fruit:delete_empty_adfiles = yes
+fruit:time machine = yes
+EOF
 
-        # Agregar configuración de Samba
-        echo ================================================
-        echo Agregando recurso compartido Samba para $dir_name
-        echo ================================================
-        echo "[$dir_name]" >> /etc/samba/smb.conf
-        echo "comment = $dir_name" >> /etc/samba/smb.conf
-        echo "path = $dir_path" >> /etc/samba/smb.conf
-        echo "browsable = yes" >> /etc/samba/smb.conf
-        echo "writable = yes" >> /etc/samba/smb.conf
-        echo "valid users = @$mygroup" >> /etc/samba/smb.conf
-        echo "write list = @$mygroup" >> /etc/samba/smb.conf
-        echo "force group = +$mygroup" >> /etc/samba/smb.conf
-        echo "create mask = 0770" >> /etc/samba/smb.conf
-        echo "guest ok = no" >> /etc/samba/smb.conf
-        echo "" >> /etc/samba/smb.conf
-    fi
-}
+# Create the user if it doesn't exist
+if ! id -u $user &>/dev/null; then
+    echo ================================================
+    echo Creating user $user
+    echo ================================================
+    adduser -D $user
+    echo -e "$password\n$password" | smbpasswd -a -s $user
+    addgroup -g 8888 $mygroup
+    addgroup -S $user $mygroup
+fi
 
-# Procesar mydir (definido en el Dockerfile)
-create_directory "$mydir"
+# Find environment variables starting with "mydir" and create directories
+for var in $(env | grep '^mydir'); do
+    dir_path="${var#*=}"
+    dir_name=$(basename "$dir_path")
 
-# Procesar todos los directorios adicionales que empiezan con "mydir"
-for var in $(env | cut -d= -f1 | grep '^mydir' | grep -v '^mydir$'); do
-    dir_path=$(eval echo \$$var)
-    create_directory "$dir_path"
+    # Create the directory
+    echo ================================================
+    echo Creating directory $dir_path
+    echo ================================================
+    mkdir -p "$dir_path"
+    chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
+    chmod 770 "$dir_path"
+
+    # Add a Samba share configuration
+    echo ================================================
+    echo Adding Samba share for $dir_name
+    echo ================================================
+    cat << EOF >> /etc/samba/smb.conf
+[$dir_name]
+comment = $dir_name
+path = $dir_path
+browsable = yes
+writable = yes
+valid users = @$mygroup
+write list = @$mygroup
+force group = +$mygroup
+create mask = 0770
+guest ok = no
+EOF
 done
 
-# Procesar directorios adicionales
-IFS=',' read -ra DIRS <<< "$additional_dirs"
-for dir in "${DIRS[@]}"; do
-    create_directory "$dir"
-done
-
-# Validar configuración de Samba
+# Validate Samba configuration
 echo ================================================
-echo Validando configuración de Samba
+echo Validating Samba configuration
 echo ================================================
 testparm -s
 
-# Mostrar credenciales de usuario
+# Display user credentials
 echo ================================================
-echo Estas son tus credenciales
+echo These are your credentials
 echo ================================================
-echo "Usuario: $user"
-echo "Contraseña: $password"
+echo "User: $user"
+echo "Password: $password"
 
-# Iniciar el servidor Samba
+# Start the Samba server
 echo ================================================
-echo Accede a través de smb://miIP
+echo Access via smb://myIp
 echo ================================================
-echo Iniciando el servidor Samba
+echo Starting the Samba server
 smbd --foreground --debug-stdout --no-process-group
