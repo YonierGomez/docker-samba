@@ -42,20 +42,18 @@ if ! id -u $user &>/dev/null; then
     addgroup -S $user $mygroup
 fi
 
-# Process additional_dirs variable
-IFS=',' read -ra ADDR <<< "$additional_dirs"
-for dir_path in "${ADDR[@]}"; do
-    dir_name=$(basename "$dir_path")
+# Function to create directory and add Samba share
+create_samba_share() {
+    local dir_path=$1
+    local dir_name=$(basename "$dir_path")
 
-    # Create the directory
     echo ================================================
     echo Creating directory $dir_path
     echo ================================================
     mkdir -p "$dir_path"
-    chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
+    chgrp -R $mygroup "$dir_path"
     chmod 770 "$dir_path"
 
-    # Add a Samba share configuration
     echo ================================================
     echo Adding Samba share for $dir_name
     echo ================================================
@@ -71,6 +69,15 @@ force group = +$mygroup
 create mask = 0770
 guest ok = no
 EOF
+}
+
+# Create the main directory and Samba share
+create_samba_share "$mydir"
+
+# Process additional_dirs variable
+IFS=',' read -ra ADDR <<< "$additional_dirs"
+for dir_path in "${ADDR[@]}"; do
+    create_samba_share "$dir_path"
 done
 
 # Validate Samba configuration
