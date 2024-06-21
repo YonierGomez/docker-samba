@@ -1,66 +1,29 @@
-#!/bin/bash
+FROM alpine
 
-# Imprimir todas las variables de entorno para depuración
-echo "Environment variables:"
-env
+LABEL maintainer="Yonier Gómez"
 
-mygroup=$mygroup
+# Instalar Samba y limpiar la caché de apk
+RUN apk add --update \
+    samba-common-tools \
+    samba-client \
+    samba-server \
+    && rm -rf /var/cache/apk/*
 
-# Función para crear directorios basados en variables de entorno
-create_directory() {
-    local dir_path="$1"
-    local dir_name=$(basename "$dir_path")
+# Configurar variables de entorno predeterminadas
+ENV user=neytor \
+    password=neytor \
+    mygroup=sambita \
+    mydir=/download \
+    mydirdos=/work
 
-    if [ -n "$dir_path" ]; then
-        # Crear el directorio
-        echo ================================================
-        echo Creando directorio $dir_path
-        echo ================================================
-        mkdir -p "$dir_path"
-        chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
-        chmod 770 "$dir_path"
+# Copiar el script de ejecución
+COPY run.sh /opt/run.sh
 
-        # Agregar configuración de Samba
-        echo ================================================
-        echo Agregando recurso compartido Samba para $dir_name
-        echo ================================================
-        cat << EOF >> /etc/samba/smb.conf
-[$dir_name]
-comment = $dir_name
-path = $dir_path
-browsable = yes
-writable = yes
-valid users = @$mygroup
-write list = @$mygroup
-force group = +$mygroup
-create mask = 0770
-guest ok = no
-EOF
-    fi
-}
+# Dar permisos de ejecución al script
+RUN chmod +x /opt/run.sh
 
-# Procesar todos los directorios que empiezan con "mydir"
-for var in $(compgen -v | grep '^mydir'); do
-    dir_path="${!var}"
-    create_directory "$dir_path"
-done
+# Exponer los puertos necesarios para Samba
+EXPOSE 139 445
 
-# Validar configuración de Samba
-echo ================================================
-echo Validando configuración de Samba
-echo ================================================
-testparm -s
-
-# Mostrar credenciales de usuario
-echo ================================================
-echo Estas son tus credenciales
-echo ================================================
-echo "Usuario: $user"
-echo "Contraseña: $password"
-
-# Iniciar el servidor Samba
-echo ================================================
-echo Accede a través de smb://miIP
-echo ================================================
-echo Iniciando el servidor Samba
-smbd --foreground --debug-stdout --no-process-group
+# Configurar el punto de entrada para diagnóstico
+ENTRYPOINT ["/bin/sh", "-c", "ls -l /opt && cat /opt/run.sh && /bin/sh /opt/run.sh"]

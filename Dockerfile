@@ -17,7 +17,7 @@ ENV user=neytor \
     mydirdos=/work
 
 # Copiar el script de ejecución
-COPY run.sh /opt/
+COPY run.sh /opt/run.sh
 
 # Dar permisos de ejecución al script
 RUN chmod +x /opt/run.sh
@@ -26,4 +26,4 @@ RUN chmod +x /opt/run.sh
 EXPOSE 139 445
 
 # Configurar el punto de entrada
-ENTRYPOINT ["/opt/run.sh"]
+ENTRYPOINT ["/bin/sh", "/opt/run.sh"]
