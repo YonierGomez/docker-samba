@@ -1,6 +1,7 @@
 #!/bin/bash
 
 mygroup=$mygroup
+env
 
 # Move the original smb.conf to smb.backup
 mv /etc/samba/smb.conf /etc/samba/smb.backup
