@@ -12,4 +12,5 @@ ENV user=neytor \
     mydirdos=/work
 COPY run.sh /run.sh
 RUN chmod +x /run.sh  # Asegurar que el script tiene permisos de ejecución
-ENTRYPOINT [ "sh", "-c", "/run.sh" ]
+# ENTRYPOINT [ "sh", "-c", "/run.sh" ]
+CMD [ "sh", "/run.sh" ]
