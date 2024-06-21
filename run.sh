@@ -59,24 +59,18 @@ create_samba_share() {
     echo "================================================"
     echo "Adding Samba share for $dir_name"
     echo "================================================"
-    cat << 'EOF' >> /etc/samba/smb.conf
-[$dir_name]
-comment = $dir_name
-path = $dir_path
-browsable = yes
-writable = yes
-valid users = @$mygroup
-write list = @$mygroup
-force group = +$mygroup
-create mask = 0770
-guest ok = no
-EOF
-
-    # Replace placeholders with actual values
-    sed -i "s|\[$dir_name\]|[$dir_name]|" /etc/samba/smb.conf
-    sed -i "s|\$dir_name|$dir_name|g" /etc/samba/smb.conf
-    sed -i "s|\$dir_path|$dir_path|g" /etc/samba/smb.conf
-    sed -i "s|\$mygroup|$mygroup|g" /etc/samba/smb.conf
+    {
+        echo "[$dir_name]"
+        echo "comment = $dir_name"
+        echo "path = $dir_path"
+        echo "browsable = yes"
+        echo "writable = yes"
+        echo "valid users = @$mygroup"
+        echo "write list = @$mygroup"
+        echo "force group = +$mygroup"
+        echo "create mask = 0770"
+        echo "guest ok = no"
+    } >> /etc/samba/smb.conf
 }
 
 # Crear el directorio principal y recurso compartido si mydir no está vacío
