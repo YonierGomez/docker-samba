@@ -1,5 +1,5 @@
 #!/bin/bash
-
+env
 # Mover el archivo smb.conf original a smb.backup
 mv /etc/samba/smb.conf /etc/samba/smb.backup
 
