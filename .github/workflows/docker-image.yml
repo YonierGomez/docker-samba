@@ -35,6 +35,3 @@ jobs:
       run: |
         docker build . --file Dockerfile --tag neytor/samba:v4-19-6 && \
         docker image ls && docker push neytor/samba:v4-19-6
-      
-    
-
