@@ -57,8 +57,8 @@ services:
     	- user=neytor #OPCIONAL
     	- password=neytor #OPCIONAL
     	- mygroup=sambita #OPCIONAL
-    	- mydir=/download #OPCIONAL DIRECTORIO COMPARTIDO
-    	- additional_dirs=/dir1,/dir2 #OPCIONAL DIRECTORIO COMPARTIDO
+    	- mydir=/download #OPCIONAL DIRECTORIO POR DEFECTO COMPARTIDO
+    	- additional_dirs=/dir1,/dir2 #OPCIONAL DIRECTORIOS COMPARTIDO, añade todos los directorios que deseas aquí
     ports:
       - 445:445
       - 137:137/udp
