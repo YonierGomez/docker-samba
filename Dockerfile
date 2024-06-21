@@ -15,4 +15,4 @@ ENV user=neytor \
     mydirdos=/work
 
 COPY run.sh /opt/
-ENTRYPOINT [ "sh", "/opt/run.sh" ] 
+ENTRYPOINT [ "sh", "-c", "/opt/run.sh" ]
