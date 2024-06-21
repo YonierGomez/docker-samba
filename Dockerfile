@@ -1,6 +1,6 @@
 FROM alpine
 
-LABEL maintainer <Yonier Gómez>
+LABEL maintainer="Yonier Gómez"
 
 RUN apk add --update \
     samba-common-tools \
@@ -15,4 +15,8 @@ ENV user=neytor \
     additional_dirs=""
 
 COPY run.sh /opt/
-ENTRYPOINT [ "sh", "/opt/run.sh" ]
+RUN chmod +x /opt/run.sh
+
+EXPOSE 139 445
+
+ENTRYPOINT ["/bin/sh", "/opt/run.sh"]

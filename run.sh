@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Imprimir todas las variables de entorno para depuración
 echo "Environment variables:"
@@ -39,8 +39,14 @@ EOF
     fi
 }
 
-# Procesar directorios predefinidos
+# Procesar mydir (definido en el Dockerfile)
 create_directory "$mydir"
+
+# Procesar todos los directorios adicionales que empiezan con "mydir"
+for var in $(env | cut -d= -f1 | grep '^mydir' | grep -v '^mydir$'); do
+    dir_path=$(eval echo \$$var)
+    create_directory "$dir_path"
+done
 
 # Procesar directorios adicionales
 IFS=',' read -ra DIRS <<< "$additional_dirs"
