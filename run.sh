@@ -42,9 +42,9 @@ if ! id -u $user &>/dev/null; then
     addgroup -S $user $mygroup
 fi
 
-# Find environment variables starting with "mydir" and create directories
-for var in $(env | grep '^mydir'); do
-    dir_path="${var#*=}"
+# Process additional_dirs variable
+IFS=',' read -ra ADDR <<< "$additional_dirs"
+for dir_path in "${ADDR[@]}"; do
     dir_name=$(basename "$dir_path")
 
     # Create the directory
