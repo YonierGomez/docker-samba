@@ -46,6 +46,12 @@ for var in $(env | grep '^mydir'); do
     create_directory "$var"
 done
 
+# Crear directorios para mydirdos
+create_directory "mydirdos"
+
+# Crear directorios para mydircuatro (si se ha pasado como variable de entorno)
+create_directory "mydircuatro"
+
 # Validar configuración de Samba
 echo ================================================
 echo Validando configuración de Samba
