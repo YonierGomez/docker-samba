@@ -43,7 +43,7 @@ EOF
 create_directory "$mydir"
 
 # Procesar directorios adicionales
-IFS=',' read -ra DIRS <<< "$ADDITIONAL_DIRS"
+IFS=',' read -ra DIRS <<< "$additional_dirs"
 for dir in "${DIRS[@]}"; do
     create_directory "$dir"
 done
