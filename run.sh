@@ -17,25 +17,24 @@ create_directory() {
         echo Creando directorio $dir_path
         echo ================================================
         mkdir -p "$dir_path"
-        chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
+        chgrp -R $mygroup "$dir_path" || echo "Warning: Could not change group"
         chmod 770 "$dir_path"
 
         # Agregar configuración de Samba
         echo ================================================
         echo Agregando recurso compartido Samba para $dir_name
         echo ================================================
-        cat << EOF >> /etc/samba/smb.conf
-[$dir_name]
-comment = $dir_name
-path = $dir_path
-browsable = yes
-writable = yes
-valid users = @$mygroup
-write list = @$mygroup
-force group = +$mygroup
-create mask = 0770
-guest ok = no
-EOF
+        echo "[$dir_name]" >> /etc/samba/smb.conf
+        echo "comment = $dir_name" >> /etc/samba/smb.conf
+        echo "path = $dir_path" >> /etc/samba/smb.conf
+        echo "browsable = yes" >> /etc/samba/smb.conf
+        echo "writable = yes" >> /etc/samba/smb.conf
+        echo "valid users = @$mygroup" >> /etc/samba/smb.conf
+        echo "write list = @$mygroup" >> /etc/samba/smb.conf
+        echo "force group = +$mygroup" >> /etc/samba/smb.conf
+        echo "create mask = 0770" >> /etc/samba/smb.conf
+        echo "guest ok = no" >> /etc/samba/smb.conf
+        echo "" >> /etc/samba/smb.conf
     fi
 }
 
