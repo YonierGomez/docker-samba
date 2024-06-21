@@ -1,11 +1,14 @@
 #!/bin/bash
 
-mygroup=$mygroup
+# Asignar las variables de entorno si están definidas
+user=${user:-neytor}
+password=${password:-neytor}
+mygroup=${mygroup:-sambita}
 
-# Move the original smb.conf to smb.backup
+# Mover el smb.conf original a un respaldo
 mv /etc/samba/smb.conf /etc/samba/smb.backup
 
-# Create a new smb.conf with the global configuration
+# Crear un nuevo smb.conf con la configuración global
 cat << EOF > /etc/samba/smb.conf
 [global]
 workgroup = WORKGROUP
@@ -31,34 +34,32 @@ fruit:delete_empty_adfiles = yes
 fruit:time machine = yes
 EOF
 
-# Create the user if it doesn't exist
+# Crear el usuario si no existe
 if ! id -u $user &>/dev/null; then
-    echo ================================================
-    echo Creating user $user
-    echo ================================================
+    echo "=============================================="
+    echo "Creating user $user"
+    echo "=============================================="
     adduser -D $user
     echo -e "$password\n$password" | smbpasswd -a -s $user
     addgroup -g 8888 $mygroup
     addgroup -S $user $mygroup
 fi
 
-# Find environment variables starting with "mydir" and create directories
+# Crear directorios a partir de las variables de entorno que empiecen con "mydir"
 for var in $(env | grep '^mydir'); do
     dir_path="${var#*=}"
     dir_name=$(basename "$dir_path")
 
-    # Create the directory
-    echo ================================================
-    echo Creating directory $dir_path
-    echo ================================================
+    echo "=============================================="
+    echo "Creating directory $dir_path"
+    echo "=============================================="
     mkdir -p "$dir_path"
     chgrp -R $mygroup "$dir_path"  # Asignar el grupo recursivamente
     chmod 770 "$dir_path"
 
-    # Add a Samba share configuration
-    echo ================================================
-    echo Adding Samba share for $dir_name
-    echo ================================================
+    echo "=============================================="
+    echo "Adding Samba share for $dir_name"
+    echo "=============================================="
     cat << EOF >> /etc/samba/smb.conf
 [$dir_name]
 comment = $dir_name
@@ -73,22 +74,22 @@ guest ok = no
 EOF
 done
 
-# Validate Samba configuration
-echo ================================================
-echo Validating Samba configuration
-echo ================================================
+# Validar la configuración de Samba
+echo "=============================================="
+echo "Validating Samba configuration"
+echo "=============================================="
 testparm -s
 
-# Display user credentials
-echo ================================================
-echo These are your credentials
-echo ================================================
+# Mostrar las credenciales del usuario
+echo "=============================================="
+echo "These are your credentials"
+echo "=============================================="
 echo "User: $user"
 echo "Password: $password"
 
-# Start the Samba server
-echo ================================================
-echo Access via smb://myIp
-echo ================================================
-echo Starting the Samba server
+# Iniciar el servidor Samba
+echo "=============================================="
+echo "Access via smb://myIp"
+echo "=============================================="
+echo "Starting the Samba server"
 smbd --foreground --debug-stdout --no-process-group
