@@ -6,13 +6,16 @@ RUN apk add --update \
     samba-common-tools \
     samba-client \
     samba-server \
+    python3 \
+    py3-pip \
     && rm -rf /var/cache/apk/*
 
 ENV user=neytor \
     password=neytor \
     mygroup=sambita \
     mydir=/download \
-    mydirdos=/work
+    mydirdos=/work \
+    additional_dirs=""
 
-COPY run.sh /opt/
-ENTRYPOINT [ "sh", "/opt/run.sh" ] 
+COPY run.py /opt/
+ENTRYPOINT [ "python3", "/opt/run.py" ]
