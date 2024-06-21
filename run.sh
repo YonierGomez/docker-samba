@@ -41,7 +41,6 @@ EOF
 
 # Procesar directorios predefinidos
 create_directory "$mydir"
-create_directory "$mydirdos"
 
 # Procesar directorios adicionales
 IFS=',' read -ra DIRS <<< "$ADDITIONAL_DIRS"
