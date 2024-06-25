@@ -16,17 +16,8 @@ def create_smb_conf():
     idmap config * : backend = tdb
     hosts allow = 192., 127., ::1, 172.
     hosts deny = 0.0.0.0/0
-
-    # TCP/IP optimizations
-    socket options = TCP_NODELAY SO_RCVBUF=131072 SO_SNDBUF=131072
-
-    # Performance parameters
-    read raw = yes
-    write raw = yes
-    getwd cache = yes
-
-    # APPLE
-    vfs objects = streams_xattr
+    #APPLE
+    vfs objects = fruit streams_xattr
     fruit:metadata = stream
     fruit:model = MacSamba
     fruit:posix_rename = yes
