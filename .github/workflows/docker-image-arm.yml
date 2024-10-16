@@ -28,11 +28,11 @@ jobs:
         docker image ls &&
         docker push neytor/samba:arm
     
-    - name: Build and push the Docker image with tag
-      run: |
-        docker build . --file Dockerfile --tag neytor/samba:arm-v4-19-6 &&
-        docker image ls &&
-        docker push neytor/samba:arm-v4-19-6
+    # - name: Build and push the Docker image with tag
+    #   run: |
+    #     docker build . --file Dockerfile --tag neytor/samba:arm-v4-19-6 &&
+    #     docker image ls &&
+    #     docker push neytor/samba:arm-v4-19-6
       
       
     
