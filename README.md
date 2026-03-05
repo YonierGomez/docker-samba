@@ -1,64 +1,65 @@
-Comparte archivos entre Windows, Linux, Mac, todo con Samba
-======================
+# Docker Samba - Servidor de archivos compartidos
 
-## Referencia rápida
+Comparte archivos entre Windows, Linux y macOS con Samba en Docker. Imagen multi-arquitectura lista para x86, ARM64 y Raspberry Pi.
 
--	**¿Qué es  samba?**
--	**¿Cuál es nuestro uso?**
--	**¿Cómo usar esta imagen?**
--	**Login por defecto**
--	**Arquitectura soportada**
--	**Variables**
--	**Rendimiento optimizado**
--	**Uso en raspberry**
--	**Te invito a visitar mi web**
+![Samba](https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Samba_logo_2010.svg/2880px-Samba_logo_2010.svg.png)
 
-## ¿Qué es  samba?
+## Inicio rápido
 
-### Definición Wikipedia
+```bash
+docker run -d --name samba \
+  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
+  -v samba:/download \
+  neytor/samba
+```
 
-**Samba** es una implementación libre del [protocolo](https://es.wikipedia.org/wiki/Protocolo_(informática)) de archivos compartidos de [Microsoft Windows](https://es.wikipedia.org/wiki/Microsoft_Windows) (antiguamente llamado [SMB](https://es.wikipedia.org/wiki/Server_Message_Block), renombrado posteriormente a CIFS) para sistemas de tipo [UNIX](https://es.wikipedia.org/wiki/UNIX). De esta forma, es posible que computadoras con [GNU/Linux](https://es.wikipedia.org/wiki/GNU/Linux), [Mac OS X](https://es.wikipedia.org/wiki/Mac_OS_X) o [Unix](https://es.wikipedia.org/wiki/Unix) en general se vean como servidores o actúen como clientes en redes de Windows. Samba también permite validar usuarios haciendo de [Controlador Principal de Dominio](https://es.wikipedia.org/wiki/Controlador_de_dominio) (PDC), como miembro de dominio e incluso como un dominio [Active Directory](https://es.wikipedia.org/wiki/Active_Directory) para redes basadas en Windows; aparte de ser capaz de servir colas de impresión, directorios compartidos y autentificar con su propio archivo de usuarios.
+Accede desde cualquier equipo: `smb://tu-ip`
+- Usuario: `neytor`
+- Contraseña: `neytor`
 
-> [Samba Wikipedia](https://es.wikipedia.org/wiki/Samba_(software))
+## Arquitecturas soportadas
 
-![smb](https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Samba_logo_2010.svg/2880px-Samba_logo_2010.svg.png)
+La imagen es **multi-arch**. Docker detecta tu arquitectura automáticamente y descarga la versión correcta.
 
+| Arquitectura | Dispositivos típicos | Comando |
+|---|---|---|
+| x86-64 (amd64) | PCs, servidores, VMs | `docker pull neytor/samba` |
+| ARM64 (aarch64) | Raspberry Pi 3/4/5, Apple Silicon | `docker pull neytor/samba` |
+| ARMv7 (armhf) | Raspberry Pi 2, dispositivos IoT | `docker pull neytor/samba` |
 
+> Ya no necesitás usar el tag `:arm`. El mismo `neytor/samba` funciona en todas las plataformas.
 
-## ¿Cuál es nuestro uso?
+### Forzar una arquitectura específica
 
-Nuestro servidor samba nos permitirá compartir directorio entre sistemas tales como WIndows, Linux, MacOS.
+Si necesitás descargar una arquitectura diferente a la de tu máquina (ej: para pruebas):
 
-![Polymart Downloads](https://img.shields.io/polymart/downloads/323)
+```bash
+# Forzar ARM64
+docker pull --platform linux/arm64 neytor/samba
 
-## ¿Cómo usar esta imagen?
+# Forzar x86-64
+docker pull --platform linux/amd64 neytor/samba
 
-Puede hacer uso de docker cli o docker compose
+# Forzar ARMv7
+docker pull --platform linux/arm/v7 neytor/samba
+```
 
-### Login por defecto
+## Instalación
 
-Para acceder a su recurso compartido siga la sintaxis descrita en la tabla:
-
-| URL acceso            | Usuario por defecto | Contraseña por defecto |
-| --------------------- | ------------------- | ---------------------- |
-| `smb://miDireccionIP` | `neytor`            | `neytor`               |
-
-### docker-compose (recomendado)
+### Docker Compose (recomendado)
 
 ```yaml
----
-version: '3'
 services:
-  samba_server:
+  samba:
     image: neytor/samba
     container_name: samba_server
     restart: always
     environment:
-    	- user=neytor #OPCIONAL
-    	- password=neytor #OPCIONAL
-    	- mygroup=sambita #OPCIONAL
-    	- mydir=/download #OPCIONAL DIRECTORIO POR DEFECTO COMPARTIDO
-    	- additional_dirs=/dir1,/dir2 #OPCIONAL DIRECTORIOS COMPARTIDO, añade todos los directorios que deseas aquí
+      - user=neytor
+      - password=neytor
+      - mygroup=sambita
+      - mydir=/download
+      - additional_dirs=/media,/backups
     ports:
       - 445:445
       - 137:137/udp
@@ -66,83 +67,72 @@ services:
       - 139:139/tcp
     volumes:
       - samba:/download
-  volumes:
-    samba:
-...
+      - /ruta/local/media:/media
+      - /ruta/local/backups:/backups
+
+volumes:
+  samba:
 ```
 
-> Nota: Puedes reemplazar environment por env_file y pasarle un archivo .env como valor, recuerde que el archivo .env debe tener las variables deseadas.
-
-### docker cli
+### Docker CLI
 
 ```bash
-docker container run \
-   --name samba_server -v samba:/download \
-   -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
-   -d neytor/samba
-```
-
-## Arquitectura soportada
-
-La arquitectura soportada es la siguiente:
-
-| Arquitectura | Disponible | Tag descarga                 |
-| ------------ | ---------- | ---------------------------- |
-| x86-64       | ✅          | docker pull neytor/samba     |
-| arm64        | ✅          | docker pull neytor/samba:arm |
-
-## Variables
-
-Puedes pasar las siguientes variables al crear el contenedor
-
-| Variable      | Función                                                      |
-| ------------- | ------------------------------------------------------------ |
-| `-e user`     | Define el usuario para login - por defecto es neytor         |
-| `-e password` | Define la contraseña para el usuario - por defecto es neytor |
-| `-e mygroup`  | Define el nombre del grupo - por defecto un PGID de 8888 y grupo sambita |
-| `-e mydir`      | Define el directorio que desea compartir - por defecto es /download |
-| `-e additional_dirs`      | Opcional: Define todos los directorios que deseas compartir,ejemplo additional_dirs=/dir1,/dir2,/dir3 respetando la estructura definida. |
-
-> **IMPORTANTE:** Puede crear mas carpetas compartidas únicamente debe respetar el nombre 'mydir' luego cualquier cosa, por ejemlo; Pasando la opción '-e mydiruno', '-e additional_dirs', todos los que necesites, 
-
-#### Ejemplo completo
-
-```bash
-docker container run \
-  --name samba_server -v samba:/download \
+docker run -d --name samba_server \
+  -v samba:/download \
   -e user=neytor \
+  -e password=neytor \
   -e mydir=/download \
-  -e additional_dirs=/work,/dir1/dir2,/dir3 \ #RECUERDA OPCIONAL DIRECTORIO COMPARTIDO
+  -e additional_dirs=/work,/media \
   -e mygroup=sambita \
-  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
-  -d neytor/samba
+  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
+  neytor/samba
 ```
 
-## Environment variables desde archivo (Docker secrets)
+## Variables de entorno
 
-Se recomienda pasar la variable `password`a través de un archivo.
+| Variable | Descripción | Valor por defecto |
+|---|---|---|
+| `user` | Usuario para autenticación SMB | `neytor` |
+| `password` | Contraseña del usuario | `neytor` |
+| `mygroup` | Grupo de Samba (GID 8888) | `sambita` |
+| `mydir` | Directorio compartido principal | `/download` |
+| `additional_dirs` | Directorios extra separados por coma | _(vacío)_ |
 
-## Rendimiento optimizado
+> Se recomienda pasar `password` mediante Docker secrets o un archivo `.env` en producción.
 
-Si desea una mejor velocidad se recomienda utilizar la red `host`
+## Rendimiento
 
-## Uso en Raspberry
-
-Puedes utilizarla para cualquier raspberry pi
+Para mejor velocidad, usá la red `host`:
 
 ```bash
-docker container run \
-  --name samba_server -v samba:/download \
-  -e user=neytor \
-  -e mydir=/download \
-  -e additional_dirs=/work,/dir1/dir2,/dir3 \ #RECUERDA OPCIONAL DIRECTORIO COMPARTIDO
-  -e mygroup=sambita \
-  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \  
-  -d neytor/samba:arm
+docker run -d --name samba_server \
+  --network host \
+  -v samba:/download \
+  neytor/samba
 ```
 
-[![Try in PWD](https://github.com/play-with-docker/stacks/raw/cff22438cb4195ace27f9b15784bbb497047afa7/assets/images/button.png)](http://play-with-docker.com?stack=https://raw.githubusercontent.com/docker-library/docs/db214ae34137ab29c7574f5fbe01bc4eaea6da7e/wordpress/stack.yml)
+## Uso en Raspberry Pi
 
-## Te invito a visitar mi web
+Funciona en cualquier Raspberry Pi sin configuración extra:
 
-Puedes ver nuevos eventos en [https://www.yonier.com/](https://www.yonier.com)
+```bash
+docker run -d --name samba_server \
+  -v samba:/download \
+  -p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \
+  neytor/samba
+```
+
+> La imagen detecta automáticamente si tu Pi es ARM64 o ARMv7.
+
+## Releases automáticos
+
+Este proyecto verifica semanalmente si hay nuevas versiones de Samba en Alpine Linux. Cuando se detecta una actualización, se genera automáticamente:
+- Build multi-arch (amd64, arm64, armv7)
+- Push a Docker Hub con tags `latest` y versión específica
+- GitHub Release con notas de la versión
+
+## Links
+
+- [Docker Hub](https://hub.docker.com/r/neytor/samba)
+- [GitHub](https://github.com/YonierGomez/docker-samba)
+- [Web del autor](https://www.yonier.com)

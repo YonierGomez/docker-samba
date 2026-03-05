@@ -81,12 +81,28 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         TAG="v${{ steps.samba_version.outputs.version }}"
+        VERSION="${{ steps.samba_version.outputs.version }}"
         gh release create "$TAG" \
-          --title "Samba ${{ steps.samba_version.outputs.version }}" \
-          --notes "Automated release for Samba ${{ steps.samba_version.outputs.version }} on Alpine.
+          --title "Samba $VERSION" \
+          --notes "## Samba $VERSION on Alpine Linux
 
-        Docker tags:
-        - \`neytor/samba:latest\`
-        - \`neytor/samba:${{ steps.samba_version.outputs.version }}\`
+        ### Docker tags
+        \`\`\`bash
+        docker pull neytor/samba:latest
+        docker pull neytor/samba:$VERSION
+        \`\`\`
 
-        Platforms: linux/amd64, linux/arm64, linux/arm/v7"
+        ### Arquitecturas soportadas
+        La imagen es multi-arch. Docker descarga la versión correcta automáticamente.
+
+        | Arquitectura | Plataforma | Comando para forzar |
+        |---|---|---|
+        | x86-64 | PCs, servidores | \`docker pull --platform linux/amd64 neytor/samba\` |
+        | ARM64 | Raspberry Pi 3/4/5, Apple Silicon | \`docker pull --platform linux/arm64 neytor/samba\` |
+        | ARMv7 | Raspberry Pi 2, IoT | \`docker pull --platform linux/arm/v7 neytor/samba\` |
+
+        ### Uso rápido
+        \`\`\`bash
+        docker run -d --name samba -p 445:445 -v samba:/download neytor/samba
+        \`\`\`
+        Accede via \`smb://tu-ip\` con usuario \`neytor\` / contraseña \`neytor\`"

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Samba - Servidor de archivos compartidos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a2e; background: #f8f9fa; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: white; text-align: center; padding: 80px 20px;
+    }
+    .hero h1 { font-size: 2.8rem; margin-bottom: 16px; }
+    .hero p { font-size: 1.2rem; opacity: 0.9; max-width: 600px; margin: 0 auto 32px; }
+    .badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 32px; }
+    .badge {
+      background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 16px;
+      font-size: 0.85rem; backdrop-filter: blur(4px);
+    }
+    .cta { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .cta a {
+      padding: 12px 28px; border-radius: 8px; font-weight: 600;
+      font-size: 1rem; transition: transform 0.2s;
+    }
+    .cta a:hover { transform: translateY(-2px); text-decoration: none; }
+    .cta-primary { background: #e94560; color: white; }
+    .cta-secondary { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+    section { padding: 60px 0; }
+    section h2 { font-size: 1.8rem; margin-bottom: 24px; text-align: center; }
+    .code-block {
+      background: #1a1a2e; color: #a8dadc; border-radius: 8px;
+      padding: 20px 24px; overflow-x: auto; font-family: 'SF Mono', Consolas, monospace;
+      font-size: 0.9rem; line-height: 1.6; margin: 16px 0;
+    }
+    .code-block .comment { color: #6c757d; }
+    .arch-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 24px; }
+    .arch-card {
+      background: white; border-radius: 12px; padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center;
+    }
+    .arch-card .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .arch-card h3 { margin-bottom: 8px; }
+    .arch-card p { color: #6c757d; font-size: 0.9rem; }
+    .vars-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .vars-table th, .vars-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    .vars-table th { background: #1a1a2e; color: white; }
+    .vars-table tr:hover { background: #f1f3f5; }
+    .vars-table code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+    .highlight { background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; }
+    .feature { text-align: center; padding: 20px; }
+    .feature .icon { font-size: 2rem; margin-bottom: 8px; }
+    .feature h3 { font-size: 1rem; margin-bottom: 4px; }
+    .feature p { color: #6c757d; font-size: 0.85rem; }
+    footer {
+      text-align: center; padding: 40px 20px; color: #6c757d;
+      border-top: 1px solid #dee2e6; font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🗂️ Docker Samba</h1>
+  <p>Servidor de archivos compartidos para Windows, Linux y macOS. Multi-arquitectura, listo para x86, ARM64 y Raspberry Pi.</p>
+  <div class="badges">
+    <span class="badge">📦 Multi-arch</span>
+    <span class="badge">🍓 Raspberry Pi</span>
+    <span class="badge">🔄 Auto-release</span>
+    <span class="badge">🐳 Alpine Linux</span>
+  </div>
+  <div class="cta">
+    <a href="https://hub.docker.com/r/neytor/samba" class="cta-primary">Docker Hub</a>
+    <a href="https://github.com/YonierGomez/docker-samba" class="cta-secondary">GitHub</a>
+  </div>
+</div>
+
+<section>
+  <div class="container">
+    <h2>Inicio rápido</h2>
+    <div class="code-block">
+      <span class="comment"># Solo ejecuta esto. Docker descarga la imagen correcta para tu arquitectura.</span><br>
+      docker run -d --name samba \<br>
+      &nbsp;&nbsp;-p 445:445 -p 137:137/udp -p 138:138/udp -p 139:139/tcp \<br>
+      &nbsp;&nbsp;-v samba:/download \<br>
+      &nbsp;&nbsp;neytor/samba
+    </div>
+    <p style="text-align:center; margin-top:16px; color:#6c757d;">
+      Accede desde cualquier equipo: <code>smb://tu-ip</code> — usuario <code>neytor</code> / contraseña <code>neytor</code>
+    </p>
+  </div>
+</section>
+
+<section style="background: white;">
+  <div class="container">
+    <h2>Arquitecturas soportadas</h2>
+    <p style="text-align:center; color:#6c757d; margin-bottom:8px;">
+      La imagen es multi-arch. Docker detecta tu plataforma y descarga la versión correcta automáticamente.
+    </p>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="icon">🖥️</div>
+        <h3>x86-64 (amd64)</h3>
+        <p>PCs, servidores, máquinas virtuales</p>
+      </div>
+      <div class="arch-card">
+        <div class="icon">🍓</div>
+        <h3>ARM64 (aarch64)</h3>
+        <p>Raspberry Pi 3/4/5, Apple Silicon</p>
+      </div>
+      <div class="arch-card">
+        <div class="icon">📟</div>
+        <h3>ARMv7 (armhf)</h3>
+        <p>Raspberry Pi 2, dispositivos IoT</p>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:24px;">
+      <span class="comment"># Para forzar una arquitectura específica:</span><br>
+      docker pull --platform linux/arm64 neytor/samba<br>
+      docker pull --platform linux/amd64 neytor/samba<br>
+      docker pull --platform linux/arm/v7 neytor/samba
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>Docker Compose</h2>
+    <div class="code-block">
+      services:<br>
+      &nbsp;&nbsp;samba:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;image: neytor/samba<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;container_name: samba_server<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;restart: always<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;environment:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- user=neytor<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- password=neytor<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- mygroup=sambita<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- mydir=/download<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- additional_dirs=/media,/backups<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;ports:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 445:445<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 137:137/udp<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 138:138/udp<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- 139:139/tcp<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;volumes:<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- samba:/download<br><br>
+      volumes:<br>
+      &nbsp;&nbsp;samba:
+    </div>
+  </div>
+</section>
+
+<section style="background: white;">
+  <div class="container">
+    <h2>Variables de entorno</h2>
+    <table class="vars-table">
+      <thead>
+        <tr><th>Variable</th><th>Descripción</th><th>Default</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>Usuario para autenticación SMB</td><td><code>neytor</code></td></tr>
+        <tr><td><code>password</code></td><td>Contraseña del usuario</td><td><code>neytor</code></td></tr>
+        <tr><td><code>mygroup</code></td><td>Grupo de Samba (GID 8888)</td><td><code>sambita</code></td></tr>
+        <tr><td><code>mydir</code></td><td>Directorio compartido principal</td><td><code>/download</code></td></tr>
+        <tr><td><code>additional_dirs</code></td><td>Directorios extra separados por coma</td><td><em>vacío</em></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>Características</h2>
+    <div class="features">
+      <div class="feature">
+        <div class="icon">🔄</div>
+        <h3>Auto-release</h3>
+        <p>Verifica semanalmente nuevas versiones de Samba</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🍎</div>
+        <h3>Compatible Apple</h3>
+        <p>Soporte nativo para Time Machine y macOS</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🪶</div>
+        <h3>Ligera</h3>
+        <p>Basada en Alpine Linux, mínimo consumo</p>
+      </div>
+      <div class="feature">
+        <div class="icon">⚡</div>
+        <h3>SMB3</h3>
+        <p>Protocolo moderno con mejor rendimiento</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    Creado por <a href="https://www.yonier.com">Yonier Gómez</a> —
+    <a href="https://github.com/YonierGomez/docker-samba">GitHub</a> ·
+    <a href="https://hub.docker.com/r/neytor/samba">Docker Hub</a>
+  </p>
+</footer>
+
+</body>
+</html>
