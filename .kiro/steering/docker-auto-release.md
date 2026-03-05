@@ -19,6 +19,11 @@ Instrucciones para configurar un pipeline de GitHub Actions que:
 2. Permisos del repo:
    - Settings → Actions → General → Workflow permissions → "Read and write permissions"
 
+3. Branch protection en `main`:
+   - Todos los cambios deben ir via Pull Request
+   - No se permite push directo a `main`
+   - El workflow de auto-release corre desde `main` via schedule/dispatch
+
 ## Estructura del workflow
 
 El workflow tiene estas fases:
