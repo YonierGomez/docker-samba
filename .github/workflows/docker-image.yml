@@ -75,6 +75,27 @@ jobs:
           neytor/samba:latest
           neytor/samba:${{ steps.samba_version.outputs.version }}
 
+    - name: Get Samba release notes
+      if: steps.compare.outputs.new_version == 'true'
+      id: changelog
+      run: |
+        VERSION="${{ steps.samba_version.outputs.version }}"
+        # Extraer version base sin -rN de Alpine (4.22.8-r0 -> 4.22.8)
+        SAMBA_BASE=$(echo "$VERSION" | sed 's/-r[0-9]*//')
+        URL="https://www.samba.org/samba/history/samba-${SAMBA_BASE}.html"
+        echo "Fetching release notes from: $URL"
+
+        NOTES=$(curl -sf "$URL" 2>/dev/null | \
+          sed -n '/Changes since/,/<\/pre>/p' | \
+          sed 's/<[^>]*>//g' | \
+          sed '/^$/d' | \
+          head -60 || echo "No se encontraron notas para esta versión.")
+
+        # Guardar en archivo para evitar problemas con caracteres especiales
+        echo "$NOTES" > /tmp/samba_changelog.txt
+        echo "url=$URL" >> "$GITHUB_OUTPUT"
+        echo "base_version=$SAMBA_BASE" >> "$GITHUB_OUTPUT"
+
     - name: Create GitHub Release
       if: steps.compare.outputs.new_version == 'true'
       env:
@@ -82,14 +103,24 @@ jobs:
       run: |
         TAG="v${{ steps.samba_version.outputs.version }}"
         VERSION="${{ steps.samba_version.outputs.version }}"
-        gh release create "$TAG" \
-          --title "Samba $VERSION" \
-          --notes "## Samba $VERSION on Alpine Linux
+        CHANGELOG=$(cat /tmp/samba_changelog.txt)
+        NOTES_URL="${{ steps.changelog.outputs.url }}"
+
+        cat > /tmp/release_notes.md << EOF
+        ## Samba ${VERSION} on Alpine Linux
+
+        ### Novedades de Samba ${{ steps.changelog.outputs.base_version }}
+
+        \`\`\`
+        ${CHANGELOG}
+        \`\`\`
+
+        > 📋 [Release notes completas](${NOTES_URL})
 
         ### Docker tags
         \`\`\`bash
         docker pull neytor/samba:latest
-        docker pull neytor/samba:$VERSION
+        docker pull neytor/samba:${VERSION}
         \`\`\`
 
         ### Arquitecturas soportadas
@@ -105,4 +136,9 @@ jobs:
         \`\`\`bash
         docker run -d --name samba -p 445:445 -v samba:/download neytor/samba
         \`\`\`
-        Accede via \`smb://tu-ip\` con usuario \`neytor\` / contraseña \`neytor\`"
+        Accede via \`smb://tu-ip\` con usuario \`neytor\` / contraseña \`neytor\`
+        EOF
+
+        gh release create "$TAG" \
+          --title "Samba $VERSION" \
+          --notes-file /tmp/release_notes.md
