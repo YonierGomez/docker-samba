@@ -17,7 +17,7 @@ jobs:
       id: samba_version
       run: |
         SAMBA_VERSION=$(docker run --rm alpine:latest sh -c \
-          "apk update > /dev/null 2>&1 && apk info samba 2>/dev/null | head -1 | sed 's/samba-//'")
+          "apk update > /dev/null 2>&1 && apk list samba 2>/dev/null | grep '^samba-' | head -1 | sed 's/samba-\([^ ]*\).*/\1/'")
         echo "version=$SAMBA_VERSION" >> "$GITHUB_OUTPUT"
         echo "Samba version in Alpine: $SAMBA_VERSION"
 
