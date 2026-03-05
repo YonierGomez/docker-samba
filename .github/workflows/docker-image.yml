@@ -5,6 +5,9 @@ on:
     - cron: '0 8 * * 1' # Cada lunes a las 8:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   check_and_build:
     runs-on: ubuntu-latest
