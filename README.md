@@ -169,6 +169,13 @@ git checkout main && git pull
 git branch -d mi-feature
 ```
 
+## Apoya el proyecto
+
+Si te resulta útil, considerá apoyar el desarrollo:
+
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy_Me_A_Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/yoniergomez)
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub_Sponsors-EA4AAA?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/YonierGomez)
+
 ## Links
 
 - [Landing Page](https://yoniergomez.github.io/docker-samba/)
