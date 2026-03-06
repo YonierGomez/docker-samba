@@ -19,9 +19,11 @@
 ![ARM](https://img.shields.io/badge/ARM-0091BD?logo=arm&logoColor=white)
 ![x86-64](https://img.shields.io/badge/x86--64-blue)
 
-Comparte archivos entre Windows, Linux y macOS con Samba en Docker. Imagen multi-arquitectura lista para x86, ARM64 y Raspberry Pi.
+Comparte archivos entre Windows, Linux y macOS con Samba en Docker. Imagen multi-arquitectura lista para x86, ARM64 y placas SBC (Raspberry Pi, Orange Pi, etc).
 
-![Samba](https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Samba_logo_2010.svg/2880px-Samba_logo_2010.svg.png)
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Samba_logo_2010.svg/800px-Samba_logo_2010.svg.png" alt="Samba" width="300">
+</p>
 
 ## Inicio rápido
 
@@ -40,13 +42,13 @@ Accede desde cualquier equipo: `smb://tu-ip`
 
 La imagen es **multi-arch**. Docker detecta tu arquitectura automáticamente y descarga la versión correcta.
 
-| Arquitectura | Dispositivos típicos | Comando |
+| Arquitectura | Dispositivos compatibles | Comando |
 |---|---|---|
-| x86-64 (amd64) | PCs, servidores, VMs | `docker pull neytor/samba` |
-| ARM64 (aarch64) | Raspberry Pi 3/4/5, Apple Silicon | `docker pull neytor/samba` |
-| ARMv7 (armhf) | Raspberry Pi 2, dispositivos IoT | `docker pull neytor/samba` |
+| x86-64 (amd64) | PCs, servidores, VMs, NAS | `docker pull neytor/samba` |
+| ARM64 (aarch64) | Raspberry Pi 3B/3B+/4/5, Orange Pi 5/5B, Banana Pi M5, Rock Pi 4, NVIDIA Jetson, Apple Silicon | `docker pull neytor/samba` |
+| ARMv7 (armhf) | Raspberry Pi 2B, Orange Pi Zero/Lite/One, Banana Pi M2, dispositivos IoT | `docker pull neytor/samba` |
 
-> Ya no necesitás usar el tag `:arm`. El mismo `neytor/samba` funciona en todas las plataformas.
+> Ya no necesitás usar el tag `:arm`. El mismo `neytor/samba` funciona en todas las plataformas. Cualquier placa con arquitectura ARM (arm64 o armv7) es compatible.
 
 ### Forzar una arquitectura específica
 
@@ -130,9 +132,9 @@ docker run -d --name samba_server \
   neytor/samba
 ```
 
-## Uso en Raspberry Pi
+## Uso en placas ARM (Raspberry Pi, Orange Pi, etc.)
 
-Funciona en cualquier Raspberry Pi sin configuración extra:
+Funciona en cualquier placa ARM sin configuración extra:
 
 ```bash
 docker run -d --name samba_server \
@@ -141,7 +143,7 @@ docker run -d --name samba_server \
   neytor/samba
 ```
 
-> La imagen detecta automáticamente si tu Pi es ARM64 o ARMv7.
+> La imagen detecta automáticamente si tu placa es ARM64 o ARMv7. Compatible con Raspberry Pi (2B, 3B, 3B+, 4, 5), Orange Pi (Zero, Lite, One, 5, 5B), Banana Pi, Rock Pi, NVIDIA Jetson y cualquier SBC con arquitectura ARM.
 
 ## Releases automáticos
 
