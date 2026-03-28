@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6.0.2
       name: Download codigo from repo
 
     - name: Get latest Samba version from Alpine
@@ -53,7 +53,7 @@ jobs:
 
     - name: Set up Docker Buildx
       if: steps.compare.outputs.new_version == 'true'
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4.0.0
 
     - name: Docker Login
       if: steps.compare.outputs.new_version == 'true'
@@ -65,7 +65,7 @@ jobs:
 
     - name: Build and push Docker image
       if: steps.compare.outputs.new_version == 'true'
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7.0.0
       with:
         context: .
         file: ./Dockerfile
