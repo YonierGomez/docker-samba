@@ -1,144 +1,229 @@
-name: Docker Image CI for Samba (multi-arch)
+name: Docker Multi-Arch CI - Samba
 
 on:
   schedule:
-    - cron: '0 8 * * 1' # Cada lunes a las 8:00 UTC
+    - cron: '0 8 * * 1'  # Every Monday 08:00 UTC
   workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even if Samba version unchanged'
+        required: false
+        type: choice
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
+      skip_release:
+        description: 'Build and push Docker image but skip GitHub Release creation'
+        required: false
+        type: choice
+        default: 'false'
+        options:
+          - 'true'
+          - 'false'
 
 permissions:
   contents: write
 
 jobs:
-  check_and_build:
+  # ── Phase 1: detect whether a new Samba version is available ─────────────────
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.samba_version.outputs.version }}
+      should_build: ${{ steps.compare.outputs.should_build }}
+
+    steps:
+      - name: Get latest Samba version from Alpine
+        id: samba_version
+        run: |
+          SAMBA_VERSION=$(docker run --rm alpine:latest sh -c \
+            "apk update > /dev/null 2>&1 && apk list samba 2>/dev/null | grep '^samba-' | head -1 | sed 's/samba-\([^ ]*\).*/\1/'")
+          echo "version=$SAMBA_VERSION" >> "$GITHUB_OUTPUT"
+          echo "Samba version in Alpine: $SAMBA_VERSION"
+
+      - name: Get latest GitHub release tag
+        id: get_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          LATEST=$(gh release list \
+            --repo ${{ github.repository }} \
+            --limit 1 \
+            --json tagName \
+            --jq '.[0].tagName // ""')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "Latest release: $LATEST"
+
+      - name: Decide whether to build
+        id: compare
+        run: |
+          CURRENT="v${{ steps.samba_version.outputs.version }}"
+          LATEST="${{ steps.get_release.outputs.latest }}"
+          FORCE="${{ github.event.inputs.force_build }}"
+          if [[ "$CURRENT" != "$LATEST" || "$FORCE" == "true" ]]; then
+            echo "should_build=true"  >> "$GITHUB_OUTPUT"
+            echo "Build needed: current=$CURRENT, latest_release=$LATEST, force=$FORCE"
+          else
+            echo "should_build=false" >> "$GITHUB_OUTPUT"
+            echo "No new version — skipping build."
+          fi
+
+  # ── Phase 2: build per-arch on native runners (no QEMU) ──────────────────────
+  build:
+    needs: check-version
+    if: needs.check-version.outputs.should_build == 'true'
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Docker Login
+        uses: docker/login-action@v4.0.0
+        with:
+          username: ${{ secrets.USER_HUB }}
+          password: ${{ secrets.PASS_HUB }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v7.0.0
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          outputs: type=image,name=neytor/samba,push-by-digest=true,name-canonical=true,push=true
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest artifact
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: digest-${{ matrix.runner }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # ── Phase 3: merge digests into multi-arch manifest ──────────────────────────
+  build-and-push:
+    needs: [check-version, build]
+    if: needs.check-version.outputs.should_build == 'true'
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v6.0.2
-      name: Download codigo from repo
+      - name: Download digests
+        uses: actions/download-artifact@v8.0.1
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
 
-    - name: Get latest Samba version from Alpine
-      id: samba_version
-      run: |
-        SAMBA_VERSION=$(docker run --rm alpine:latest sh -c \
-          "apk update > /dev/null 2>&1 && apk list samba 2>/dev/null | grep '^samba-' | head -1 | sed 's/samba-\([^ ]*\).*/\1/'")
-        echo "version=$SAMBA_VERSION" >> "$GITHUB_OUTPUT"
-        echo "Samba version in Alpine: $SAMBA_VERSION"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.0.0
 
-    - name: Get latest release tag from repo
-      id: latest_release
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        LATEST_TAG=$(gh release view --json tagName -q '.tagName' 2>/dev/null || echo "none")
-        echo "tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
-        echo "Latest release tag: $LATEST_TAG"
+      - name: Docker Login
+        uses: docker/login-action@v4.0.0
+        with:
+          username: ${{ secrets.USER_HUB }}
+          password: ${{ secrets.PASS_HUB }}
 
-    - name: Compare versions
-      id: compare
-      run: |
-        SAMBA="v${{ steps.samba_version.outputs.version }}"
-        LATEST="${{ steps.latest_release.outputs.tag }}"
-        echo "Samba: $SAMBA vs Latest release: $LATEST"
-        if [ "$SAMBA" != "$LATEST" ]; then
-          echo "new_version=true" >> "$GITHUB_OUTPUT"
-          echo "Nueva version detectada"
-        else
-          echo "new_version=false" >> "$GITHUB_OUTPUT"
-          echo "Sin cambios"
-        fi
+      - name: Create and push multi-arch manifest
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          docker buildx imagetools create \
+            -t neytor/samba:latest \
+            -t neytor/samba:${VERSION} \
+            $(printf 'neytor/samba@sha256:%s ' $(ls /tmp/digests))
 
-    - name: Set up QEMU
-      if: steps.compare.outputs.new_version == 'true'
-      uses: docker/setup-qemu-action@v4
+  # ── Phase 4: GitHub Release with changelog ────────────────────────────────────
+  release:
+    needs: [check-version, build-and-push]
+    if: needs.check-version.outputs.should_build == 'true' && github.event.inputs.skip_release != 'true'
+    runs-on: ubuntu-latest
 
-    - name: Set up Docker Buildx
-      if: steps.compare.outputs.new_version == 'true'
-      uses: docker/setup-buildx-action@v4.0.0
+    steps:
+      - name: Check if release already exists
+        id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EXISTS=$(gh release view "v${{ needs.check-version.outputs.version }}" \
+            --repo ${{ github.repository }} 2>/dev/null && echo "true" || echo "false")
+          echo "exists=$EXISTS" >> "$GITHUB_OUTPUT"
 
-    - name: Docker Login
-      if: steps.compare.outputs.new_version == 'true'
-      uses: docker/login-action@v4
-      with:
-        registry: docker.io
-        username: ${{ secrets.USER_HUB }}
-        password: ${{ secrets.PASS_HUB }}
+      - name: Get Samba release notes
+        id: changelog
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          SAMBA_BASE=$(echo "$VERSION" | sed 's/-r[0-9]*//')
+          URL="https://www.samba.org/samba/history/samba-${SAMBA_BASE}.html"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "base_version=$SAMBA_BASE" >> "$GITHUB_OUTPUT"
+          NOTES=$(curl -sf "$URL" 2>/dev/null | \
+            sed -n '/Changes since/,/<\/pre>/p' | \
+            sed 's/<[^>]*>//g' | \
+            sed '/^$/d' | \
+            head -60 || echo "No release notes found.")
+          echo "$NOTES" > /tmp/samba_changelog.txt
 
-    - name: Build and push Docker image
-      if: steps.compare.outputs.new_version == 'true'
-      uses: docker/build-push-action@v7.0.0
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64,linux/arm64,linux/arm/v7
-        push: true
-        tags: |
-          neytor/samba:latest
-          neytor/samba:${{ steps.samba_version.outputs.version }}
+      - name: Create GitHub Release
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ needs.check-version.outputs.version }}"
+          VERSION="${{ needs.check-version.outputs.version }}"
+          CHANGELOG=$(cat /tmp/samba_changelog.txt)
+          NOTES_URL="${{ steps.changelog.outputs.url }}"
 
-    - name: Get Samba release notes
-      if: steps.compare.outputs.new_version == 'true'
-      id: changelog
-      run: |
-        VERSION="${{ steps.samba_version.outputs.version }}"
-        # Extraer version base sin -rN de Alpine (4.22.8-r0 -> 4.22.8)
-        SAMBA_BASE=$(echo "$VERSION" | sed 's/-r[0-9]*//')
-        URL="https://www.samba.org/samba/history/samba-${SAMBA_BASE}.html"
-        echo "Fetching release notes from: $URL"
+          cat > /tmp/release-notes.md << NOTES
+          ## Samba ${VERSION} on Alpine Linux
 
-        NOTES=$(curl -sf "$URL" 2>/dev/null | \
-          sed -n '/Changes since/,/<\/pre>/p' | \
-          sed 's/<[^>]*>//g' | \
-          sed '/^$/d' | \
-          head -60 || echo "No se encontraron notas para esta versión.")
+          ### Docker Images
 
-        # Guardar en archivo para evitar problemas con caracteres especiales
-        echo "$NOTES" > /tmp/samba_changelog.txt
-        echo "url=$URL" >> "$GITHUB_OUTPUT"
-        echo "base_version=$SAMBA_BASE" >> "$GITHUB_OUTPUT"
+          \`\`\`bash
+          docker pull neytor/samba:latest
+          docker pull neytor/samba:${VERSION}
+          \`\`\`
 
-    - name: Create GitHub Release
-      if: steps.compare.outputs.new_version == 'true'
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        TAG="v${{ steps.samba_version.outputs.version }}"
-        VERSION="${{ steps.samba_version.outputs.version }}"
-        CHANGELOG=$(cat /tmp/samba_changelog.txt)
-        NOTES_URL="${{ steps.changelog.outputs.url }}"
+          ### Supported Architectures
 
-        cat > /tmp/release_notes.md << EOF
-        ## Samba ${VERSION} on Alpine Linux
+          | Architecture | Tag |
+          |---|---|
+          | linux/amd64 | \`latest\`, \`${VERSION}\` |
+          | linux/arm64 | \`latest\`, \`${VERSION}\` |
 
-        ### Novedades de Samba ${{ steps.changelog.outputs.base_version }}
+          ### Samba Changelog
 
-        \`\`\`
-        ${CHANGELOG}
-        \`\`\`
+          \`\`\`
+          ${CHANGELOG}
+          \`\`\`
 
-        > 📋 [Release notes completas](${NOTES_URL})
+          > [Release notes completas](${NOTES_URL})
 
-        ### Docker tags
-        \`\`\`bash
-        docker pull neytor/samba:latest
-        docker pull neytor/samba:${VERSION}
-        \`\`\`
+          ### Quick Start
 
-        ### Arquitecturas soportadas
-        La imagen es multi-arch. Docker descarga la versión correcta automáticamente.
+          \`\`\`bash
+          docker run -d --name samba -p 445:445 -v samba:/download neytor/samba
+          \`\`\`
+          NOTES
 
-        | Arquitectura | Plataforma | Comando para forzar |
-        |---|---|---|
-        | x86-64 | PCs, servidores | \`docker pull --platform linux/amd64 neytor/samba\` |
-        | ARM64 | Raspberry Pi 3/4/5, Apple Silicon | \`docker pull --platform linux/arm64 neytor/samba\` |
-        | ARMv7 | Raspberry Pi 2, IoT | \`docker pull --platform linux/arm/v7 neytor/samba\` |
-
-        ### Uso rápido
-        \`\`\`bash
-        docker run -d --name samba -p 445:445 -v samba:/download neytor/samba
-        \`\`\`
-        Accede via \`smb://tu-ip\` con usuario \`neytor\` / contraseña \`neytor\`
-        EOF
-
-        gh release create "$TAG" \
-          --title "Samba $VERSION" \
-          --notes-file /tmp/release_notes.md
+          gh release create "$TAG" \
+            --repo ${{ github.repository }} \
+            --title "Samba $VERSION" \
+            --notes-file /tmp/release-notes.md
