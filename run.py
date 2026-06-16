@@ -39,7 +39,10 @@ def add_smb_share(dir_name, dir_path, mygroup):
     valid users = @{mygroup}
     write list = @{mygroup}
     force group = +{mygroup}
-    create mask = 0770
+    create mask = 0660
+    force create mode = 0660
+    directory mask = 0770
+    force directory mode = 0770
     guest ok = no
     """
     with open('/etc/samba/smb.conf', 'a') as f:
@@ -62,7 +65,7 @@ def create_dir_and_share(dir_path, mygroup):
     print("===============================================")
     os.makedirs(dir_path, exist_ok=True)
     subprocess.run(['chgrp', '-R', mygroup, dir_path])
-    subprocess.run(['chmod', '770', dir_path])
+    subprocess.run(['chmod', 'g+s,2770', dir_path])
 
     print("===============================================")
     print(f"Adding Samba share for {dir_name}")
